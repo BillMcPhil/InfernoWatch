@@ -1,37 +1,21 @@
-from flask import Flask, jsonify, render_template, redirect, url_for
-from flask_bootstrap import Bootstrap5
+from flask import Flask, jsonify, render_template, redirect, request, url_for
 from flask_cors import CORS
 import json
 import requests
-import secrets
 
-from flask_wtf import FlaskForm, CSRFProtect
-from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired, Length
+
 
 API_KEY = "" #API key goes here
 app = Flask(__name__, template_folder="../client/public", static_folder="../client/src")
-foo = secrets.token_urlsafe(16)
-app.secret_key = foo
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})  # Enable CORS for /api/*
 
-bootstrap = Bootstrap5(app)
-csrf = CSRFProtect(app)
+model = None
 
-class AddressForm(FlaskForm):
-    address = StringField("Please type in your address :)", validators=[DataRequired(), Length(0, 60)])
-    submit = SubmitField("Submit")
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    form = AddressForm()
-    message = ""
-    if form.validate_on_submit():
-        address = form.address.data
-        parsed_address = parse_address(address)
-        coords = get_coords(parsed_address)
-        print(coords)
-    return render_template("index.html", form=form)
+    return render_template("index.html")
     
 
 
@@ -53,5 +37,34 @@ def parse_address(address: str) -> str:
     parsed_address = address.replace(" ", "+")
     return parsed_address
 
+@app.route("/predict", methods=["POST"])
+def process():
+    # Get the uploaded file from the request
+    file = request.files['image']
+
+    # Open the image using PIL
+    pil_image = Image.open(file.stream)
+
+    # Convert PIL image to OpenCV format
+    img = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
+    img = cv2.resize(img, (32, 32))  # Resize to match training data
+    img = img / 255.0  # Normalize
+    img = np.expand_dims(img, axis=0)  # Add batch dimension
+
+    # Predict
+    predictions = model.predict(img)
+
+    # Get class with highest probability
+    predicted_class_index = np.argmax(predictions, axis=1)[0]
+
+    # Get class label
+    predicted_class = class_labels[predicted_class_index]
+
+    return predicted_class
+
+# Define class labels (modify according to your dataset)
+class_labels = ["nowildfire", "wildfire"]  # Assuming class names are folder names
+
 if __name__ == "__main__":
+    model = keras.models.load_model("model.keras")
     app.run(debug=True, port=8080)
