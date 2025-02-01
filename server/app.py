@@ -3,6 +3,8 @@ from flask_cors import CORS
 import requests
 
 API_KEY = "" #API key goes here
+SESSION_KEY = "" #Session key goes here
+TILE_SIZE = 256
 app = Flask(__name__, template_folder="../client/public", static_folder="../client/src")
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})  # Enable CORS for /api/*
 
@@ -29,6 +31,17 @@ def get_coords(address: str) -> tuple[float, float]:
 def parse_address(address: str) -> str:
     parsed_address = address.replace(" ", "+")
     return parsed_address
+
+def lat_long_to_point(lat: float, long: float) -> list[int]:
+    sinY = math.sin((lat * math.pi) / 180)
+    mercatorY = math.log((1 + sinY) / (1 - sinY)) / 2
+    return [TILE_SIZE * (long / 360 + 0.5), TILE_SIZE * (0.5 - mercatorY / (2 * math.pi))]
+
+
+def lat_long_to_tile(lat: float, long: float, zoom: int) -> list[int]:
+    point = lat_long_to_point(lat, long)
+    scale = 2**zoom
+    return [math.floor((point[0] * scale) / TILE_SIZE), math.floor((point[1] * scale) / TILE_SIZE), zoom]
 
 @app.route("api/predict", methods=["POST"])
 def process():
