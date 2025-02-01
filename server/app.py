@@ -53,5 +53,16 @@ def parse_address(address: str) -> str:
     parsed_address = address.replace(" ", "+")
     return parsed_address
 
+def lat_long_to_point(lat: float, long: float) -> list[int]:
+    sinY = math.sin((lat * math.pi) / 180)
+    mercatorY = math.log((1 + sinY) / (1 - sinY)) / 2
+    return [TILE_SIZE * (long / 360 + 0.5), TILE_SIZE * (0.5 - mercatorY / (2 * math.pi))]
+
+
+def lat_long_to_tile(lat: float, long: float, zoom: int) -> list[int]:
+    point = lat_long_to_point(lat, long)
+    scale = 2**zoom
+    return [math.floor((point[0] * scale) / TILE_SIZE), math.floor((point[1] * scale) / TILE_SIZE), zoom]
+
 if __name__ == "__main__":
     app.run(debug=True, port=8080)
