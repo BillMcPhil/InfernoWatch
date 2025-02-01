@@ -16,7 +16,7 @@ def home():
 def api_test():
     return jsonify({"data": "HELLO"}), 200
 
-def get_coords(address: str) -> (float, float):
+def get_coords(address: str) -> tuple[float, float]:
     try:
         url = f"https://maps.googleapis.com/maps/api/geocode/json?address={address}&key={API_KEY}"
         response = requests.get(url)
@@ -24,6 +24,16 @@ def get_coords(address: str) -> (float, float):
         return (y['results'][0]["geometry"]["location"]["lat"], y['results'][0]["geometry"]["location"]["lng"])
     except:
         return "Request failed"
+
+# Function to parse addresses to be properly formatted for map api
+def parse_address(address: str) -> str:
+    parsed_address = ""
+    for char in address:
+        if char == " ":
+            parsed_address += "+"
+        else:
+            parsed_address += char
+    return parsed_address
 
 if __name__ == "__main__":
     app.run(debug=True, port=8080)
