@@ -1,6 +1,10 @@
 from flask import Flask, jsonify, render_template, redirect, request, url_for
 from flask_cors import CORS
 import requests
+import math
+import cv2
+import numpy as np
+import keras
 
 API_KEY = "" #API key goes here
 SESSION_KEY = "" #Session key goes here
@@ -43,16 +47,9 @@ def lat_long_to_tile(lat: float, long: float, zoom: int) -> list[int]:
     scale = 2**zoom
     return [math.floor((point[0] * scale) / TILE_SIZE), math.floor((point[1] * scale) / TILE_SIZE), zoom]
 
-@app.route("api/predict", methods=["POST"])
-def process():
-    # Get the uploaded file from the request
-    file = request.files['image']
+def predict():
+    # get the image 
 
-    # Open the image using PIL
-    pil_image = Image.open(file.stream)
-
-    # Convert PIL image to OpenCV format
-    img = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
     img = cv2.resize(img, (32, 32))  # Resize to match training data
     img = img / 255.0  # Normalize
     img = np.expand_dims(img, axis=0)  # Add batch dimension
