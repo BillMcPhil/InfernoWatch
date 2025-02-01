@@ -1,9 +1,6 @@
 from flask import Flask, jsonify, render_template, redirect, request, url_for
 from flask_cors import CORS
-import json
 import requests
-
-
 
 API_KEY = "" #API key goes here
 app = Flask(__name__, template_folder="../client/public", static_folder="../client/src")
@@ -11,14 +8,10 @@ CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})  # Enable
 
 model = None
 
-
-
 @app.route("/", methods=["GET", "POST"])
 def index():
     return render_template("index.html")
     
-
-
 @app.route('/api/test', methods=['GET'])
 def api_test():
     return jsonify({"data": "HELLO"}), 200
@@ -37,7 +30,7 @@ def parse_address(address: str) -> str:
     parsed_address = address.replace(" ", "+")
     return parsed_address
 
-@app.route("/predict", methods=["POST"])
+@app.route("api/predict", methods=["POST"])
 def process():
     # Get the uploaded file from the request
     file = request.files['image']
