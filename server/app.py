@@ -1,9 +1,13 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 from flask_cors import CORS
 
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="../client/public", static_folder="../client/src")
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})  # Enable CORS for /api/*
+
+@app.route("/")
+def home():
+    return render_template("index.html")
 
 
 @app.route('/api/test', methods=['GET'])
