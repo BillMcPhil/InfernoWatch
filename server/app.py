@@ -9,6 +9,7 @@ import keras
 API_KEY = "" #API key goes here
 SESSION_KEY = "" #Session key goes here
 TILE_SIZE = 256
+ZOOM = 15
 app = Flask(__name__, template_folder="../client/public", static_folder="../client/src")
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})  # Enable CORS for /api/*
 
@@ -44,11 +45,20 @@ def lat_long_to_point(lat: float, long: float) -> list[int]:
 
 def lat_long_to_tile(lat: float, long: float, zoom: int) -> list[int]:
     point = lat_long_to_point(lat, long)
-    scale = 2**zoom
-    return [math.floor((point[0] * scale) / TILE_SIZE), math.floor((point[1] * scale) / TILE_SIZE), zoom]
+    scale = 2**ZOOM
+    return [math.floor((point[0] * scale) / TILE_SIZE), math.floor((point[1] * scale) / TILE_SIZE)]
 
-def predict():
-    # get the image 
+def get_image(tile_coords: list[int]):
+    url = f"https://tile.googleapis.com/v1/2dtiles/{ZOOM}/{tile_coords[0]}/{tile_coords[1]}?session={
+        SESSION_KEY}&key={API_KEY}"
+    resp = requests.get(url, stream=True).raw
+    image = np.asarray(bytearray(resp.read()), dtype="uint8")
+    image = cv2.imdecode(image, cv2.IMREAD_COLOR)
+    return image
+
+
+def predict(tile_coords: list[int]):
+    get_image(tile_coords)
 
     img = cv2.resize(img, (32, 32))  # Resize to match training data
     img = img / 255.0  # Normalize
