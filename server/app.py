@@ -4,12 +4,15 @@ from flask_cors import CORS
 import json
 import requests
 import secrets
+import math
 
 from flask_wtf import FlaskForm, CSRFProtect
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired, Length
 
 API_KEY = "" #API key goes here
+SESSION_KEY = "" #Session key goes here
+TILE_SIZE = 256
 app = Flask(__name__, template_folder="../client/public", static_folder="../client/src")
 foo = secrets.token_urlsafe(16)
 app.secret_key = foo
