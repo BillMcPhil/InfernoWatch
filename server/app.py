@@ -27,12 +27,7 @@ def get_coords(address: str) -> tuple[float, float]:
 
 # Function to parse addresses to be properly formatted for map api
 def parse_address(address: str) -> str:
-    parsed_address = ""
-    for char in address:
-        if char == " ":
-            parsed_address += "+"
-        else:
-            parsed_address += char
+    parsed_address = address.replace(" ", "+")
     return parsed_address
 
 if __name__ == "__main__":
