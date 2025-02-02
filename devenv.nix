@@ -21,8 +21,8 @@
   };
   # https://devenv.sh/processes/
   # processes.cargo-watch.exec = "cargo-watch";
-  processes.backend.exec = "python app.py";
-  processes.frontedn.exec = "npm run dev";
+  processes.backend.exec = "cd server && python app.py";
+  processes.frontend.exec = "cd client && npm run dev";
 
   # https://devenv.sh/services/
   # services.postgres.enable = true;

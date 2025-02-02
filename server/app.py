@@ -12,9 +12,7 @@ SESSION_KEY = os.environ["SESSION_KEY"]
 TILE_SIZE = 256
 ZOOM = 15
 app = Flask(__name__, template_folder="../client/public", static_folder="../client/src")
-CORS(
-    app, resources={r"/api/*": {"origins": "http://localhost:3000"}}
-)  # Enable CORS for /api/*
+CORS(app)
 
 model = None
 
@@ -132,17 +130,17 @@ def get_array():
 
 
 if __name__ == "__main__":
-    model = keras.models.load_model("./server/model.keras")
+    model = keras.models.load_model("./model.keras")
 
     # cords = get_coords("92 Vanier Way, NS")
-    cords = [50.16901564478449, -120.49729423675838]
-    cords = [51.33364, -62.42947]
-    cords = [51.29047, -62.56176]
-    cords = [38.22651891110837, -120.64442835296504]
-    crods = [39.50397623168039, -121.11008536095846]
-    tile_coords = lat_long_to_tile(cords[0], cords[1],15)
+    # cords = [50.16901564478449, -120.49729423675838]
+    # cords = [51.33364, -62.42947]
+    # cords = [51.29047, -62.56176]
+    # cords = [38.22651891110837, -120.64442835296504]
+    # crods = [39.50397623168039, -121.11008536095846]
+    # tile_coords = lat_long_to_tile(cords[0], cords[1],15)
+    #
+    # prediction = predict(tile_coords,model)
+    # print(prediction)
 
-    prediction = predict(tile_coords,model)
-    print(prediction)
-
-    # app.run(debug=True, port=8080)
+    app.run(debug=True, port=8080)
