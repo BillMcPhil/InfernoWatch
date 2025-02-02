@@ -1,13 +1,14 @@
 from flask import Flask, jsonify, render_template, redirect, request, url_for
 from flask_cors import CORS
 import requests
+import os
 import math
 import cv2
 import numpy as np
 import keras
 
-API_KEY = "AIzaSyB4j6tlYD5ENyzATpxGyceyj0DWhuIZWvI" #API key goes here
-SESSION_KEY = "AJVsH2wkJy_5BJ0AyXEIc2-emDKivdpHZ_AeVFue6gIQAl1mGUO2Hdtjyb8P_SAJlxgUSEqnLe2vNwrd3QZa5uRz7g" #Session key goes here
+API_KEY = os.environ["GOOGLE_API_KEY"] 
+SESSION_KEY = os.environ["SESSION_KEY"] 
 TILE_SIZE = 256
 ZOOM = 15
 app = Flask(__name__, template_folder="../client/public", static_folder="../client/src")
