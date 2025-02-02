@@ -73,6 +73,7 @@ def get_image(tile_coords: list[int]):
     return image
 
 
+
 def predict(tile_coords: list[int], model):
     size = 5
     output_array = np.zeros((size, size))
@@ -108,7 +109,7 @@ def predict(tile_coords: list[int], model):
         if predicted_classes[idx] == 1:
             print(coords_list[idx])
 
-    return output_array
+    return (output_array, coords_list)
 
 
 # Define class labels (modify according to your dataset)
@@ -123,21 +124,19 @@ def get_array():
         return jsonify({"error": "Address parameter is required"}), 400
     cords = get_coords(address)
     tile_coords = lat_long_to_tile(cords[0], cords[1], 15)
+
     
-    images = []
-    for i in range(5):
-        for j in range(5):
-            cords = [tile_coords[0] + i, tile_coords[1] + j]
-            img, buffer = get_image(cords)
-            img = cv2.resize(img, (32, 32))  # Resize to match training data
-            img = img / 255.0  # Normalize
-            img, buffer = cv2.imencode('.jpeg', img)
-            jsonible = base64.b64encode(buffer)
-            images.append(jsonible)
+    result = predict(tile_coords, model)
+    prediction = result[0]
+    tiles = result[1]
 
-    prediction = predict(tile_coords, model)
-
-    return jsonify({"address": address, "array": prediction.tolist(), "images": images})
+    counter = 0
+    for i in prediction:
+        for j in i:
+            if j == 1:
+                counter += 1
+    percent = counter/25
+    return jsonify({"address": address, "array": prediction.tolist(), "percent": percent, "tiles": tiles })
 
 
 if __name__ == "__main__":

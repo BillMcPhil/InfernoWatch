@@ -17,11 +17,13 @@ import {
 
 
 import { useJsApiLoader, StandaloneSearchBox, GoogleMap } from '@react-google-maps/api';
+import Popup from './Popup'
 
 type LatLngLiteral = google.maps.LatLngLiteral;
 type DirectionsResult = google.maps.DirectionsResult;
 type MapOptions = google.maps.MapOptions;
 const GOOGLE_API_KEY = import.meta.env.VITE_API_KEY
+const GOOGLE_SESSION_KEY = import.meta.env.VITE_SESSION_KEY
 
 
 function App() {
@@ -38,7 +40,7 @@ function App() {
         []
     );
 
-
+    const [tiles, setTiles] = React.useState([[]]) 
 
     const [open, setOpen] = React.useState(false);
 
@@ -79,7 +81,8 @@ function App() {
     function FetchAddressResult({ promise }: { promise: Promise<string> }) {
         const result = use(promise); // React suspends here while waiting
         console.log(result)
-        return <Typography variant="small" color="white">{result}</Typography>;
+        setTiles(result.tiles)
+        return <Typography variant="small" color="white">{result.percent * 100} percent is burned down near you!</Typography>;
     }
 
 
@@ -89,7 +92,7 @@ function App() {
 
 
             <div className="bg-zinc-950 flex justify-center items-center rounded-2xl mt-30 w-1/2 h-4/5">
-
+                {/*
                 <Button onClick={handleOpen} variant="gradient">
                     Open Modal
                 </Button>
@@ -112,6 +115,8 @@ function App() {
                         </Button>
                     </DialogFooter>
                 </Dialog>
+                */}
+                <Popup open={open} onClose={handleOpen} zoom={15} tiles={tiles} sessionKey={GOOGLE_SESSION_KEY} apiKey={GOOGLE_API_KEY}  />
 
                 <Card color="transparent" shadow={false}>
                     <Typography color="white" variant="h2" className="text-center">
@@ -150,6 +155,9 @@ function App() {
                         )}
                         <Button onClick={handleSubmit} className="mt-6 bg-white text-black" fullWidth>
                             SUBMIT
+                        </Button>
+                        <Button onClick={handleOpen} disabled={tiles ==[[]] } className="mt-6 bg-white text-black" fullWidth>
+                            Show Images
                         </Button>
 
                     </form>
