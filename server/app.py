@@ -6,15 +6,14 @@ import math
 import cv2
 import numpy as np
 import keras
+import base64
 
 API_KEY = os.environ["GOOGLE_API_KEY"]
 SESSION_KEY = os.environ["SESSION_KEY"]
 TILE_SIZE = 256
 ZOOM = 15
 app = Flask(__name__, template_folder="../client/public", static_folder="../client/src")
-CORS(
-    app, resources={r"/api/*": {"origins": "http://localhost:3000"}}
-)  # Enable CORS for /api/*
+CORS(app)
 
 model = None
 
@@ -74,6 +73,7 @@ def get_image(tile_coords: list[int]):
     return image
 
 
+
 def predict(tile_coords: list[int], model):
     size = 5
     output_array = np.zeros((size, size))
@@ -109,7 +109,7 @@ def predict(tile_coords: list[int], model):
         if predicted_classes[idx] == 1:
             print(coords_list[idx])
 
-    return output_array
+    return (output_array, coords_list)
 
 
 # Define class labels (modify according to your dataset)
@@ -122,27 +122,35 @@ def get_array():
 
     if not address:
         return jsonify({"error": "Address parameter is required"}), 400
-
     cords = get_coords(address)
     tile_coords = lat_long_to_tile(cords[0], cords[1], 15)
 
-    prediction = predict(tile_coords, model)
+    
+    result = predict(tile_coords, model)
+    prediction = result[0]
+    tiles = result[1]
 
-    return jsonify({"address": address, "array": prediction.tolist()})
+    counter = 0
+    for i in prediction:
+        for j in i:
+            if j == 1:
+                counter += 1
+    percent = counter/25
+    return jsonify({"address": address, "array": prediction.tolist(), "percent": percent, "tiles": tiles })
 
 
 if __name__ == "__main__":
-    model = keras.models.load_model("./server/model.keras")
+    model = keras.models.load_model("./model.keras")
 
     # cords = get_coords("92 Vanier Way, NS")
-    cords = [50.16901564478449, -120.49729423675838]
-    cords = [51.33364, -62.42947]
-    cords = [51.29047, -62.56176]
-    cords = [38.22651891110837, -120.64442835296504]
-    crods = [39.50397623168039, -121.11008536095846]
-    tile_coords = lat_long_to_tile(cords[0], cords[1],15)
+    # cords = [50.16901564478449, -120.49729423675838]
+    # cords = [51.33364, -62.42947]
+    # cords = [51.29047, -62.56176]
+    # cords = [38.22651891110837, -120.64442835296504]
+    # crods = [39.50397623168039, -121.11008536095846]
+    # tile_coords = lat_long_to_tile(cords[0], cords[1],15)
+    #
+    # prediction = predict(tile_coords,model)
+    # print(prediction)
 
-    prediction = predict(tile_coords,model)
-    print(prediction)
-
-    # app.run(debug=True, port=8080)
+    app.run(debug=True, port=8080)
