@@ -1,13 +1,14 @@
 from flask import Flask, jsonify, render_template, redirect, request, url_for
 from flask_cors import CORS
 import requests
+import os
 import math
 import cv2
 import numpy as np
 import keras
 
-API_KEY = "AIzaSyB4j6tlYD5ENyzATpxGyceyj0DWhuIZWvI" #API key goes here
-SESSION_KEY = "AJVsH2wkJy_5BJ0AyXEIc2-emDKivdpHZ_AeVFue6gIQAl1mGUO2Hdtjyb8P_SAJlxgUSEqnLe2vNwrd3QZa5uRz7g" #Session key goes here
+API_KEY = os.environ["GOOGLE_API_KEY"] 
+SESSION_KEY = os.environ["SESSION_KEY"] 
 TILE_SIZE = 256
 ZOOM = 15
 app = Flask(__name__, template_folder="../client/public", static_folder="../client/src")
@@ -61,14 +62,18 @@ def predict(tile_coords: list[int], model):
     output_array = np.zeros((size, size))
     for i in range(size):
         for j in range(size):
-            img = get_image([tile_coords[0]+i, tile_coords[1]+j])
+            cords = [tile_coords[0]+i, tile_coords[1]+j]
+            img = get_image(cords)
             img = cv2.resize(img, (32, 32))  # Resize to match training data
             img = img / 255.0  # Normalize
             img = np.expand_dims(img, axis=0)  # Add batch dimension
             predictions = model.predict(img)
+            print(predictions)
             # Get class with highest probability
-            predicted_class_index = np.argmax(predictions, axis=1)[0]
-            output_array[i][j] = predicted_class_index 
+            predicted_class = int(predictions[0][0] > 0.5)
+            if predicted_class == 1:
+                print(cords)
+            output_array[i][j] = predicted_class 
 
 
 
@@ -80,19 +85,34 @@ def predict(tile_coords: list[int], model):
 # Define class labels (modify according to your dataset)
 class_labels = ["nowildfire", "wildfire"]  # Assuming class names are folder names
 
-if __name__ == "__main__":
-    model = keras.models.load_model("./server/model.keras")
-    # cords = get_coords("92 Vanier Way, NS")
-    cords = [50.16901564478449, -120.49729423675838]
-    cords = [51.33364, -62.42947]
-    cords = [51.29047, -62.56176]
-    cords = [38.22651891110837, -120.64442835296504]
-    crods = [39.50397623168039, -121.11008536095846]
+
+@app.route('/predict', methods=['GET'])
+def get_array():
+    address = request.args.get('address')
+    
+    if not address:
+        return jsonify({"error": "Address parameter is required"}), 400
+    
+    cords = get_coords(address)
     tile_coords = lat_long_to_tile(cords[0], cords[1],15)
     
     prediction = predict(tile_coords,model)
-    print(prediction)
-    
+
+    return jsonify({"address": address, "array": prediction.tolist()})
 
 
-    # app.run(debug=True, port=8080)
+if __name__ == "__main__":
+    model = keras.models.load_model("./server/model.keras")
+
+    # cords = get_coords("92 Vanier Way, NS")
+    # cords = [50.16901564478449, -120.49729423675838]
+    # cords = [51.33364, -62.42947]
+    # cords = [51.29047, -62.56176]
+    # cords = [38.22651891110837, -120.64442835296504]
+    # crods = [39.50397623168039, -121.11008536095846]
+    # tile_coords = lat_long_to_tile(cords[0], cords[1],15)
+    # 
+    # prediction = predict(tile_coords,model)
+    # print(prediction)
+
+    app.run(debug=True, port=8080)
