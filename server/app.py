@@ -6,6 +6,7 @@ import math
 import cv2
 import numpy as np
 import keras
+import base64
 
 API_KEY = os.environ["GOOGLE_API_KEY"]
 SESSION_KEY = os.environ["SESSION_KEY"]
@@ -122,13 +123,23 @@ def get_array():
 
     if not address:
         return jsonify({"error": "Address parameter is required"}), 400
-
     cords = get_coords(address)
     tile_coords = lat_long_to_tile(cords[0], cords[1], 15)
+    
+    images = []
+    for i in range(5):
+        for j in range(5):
+            cords = [tile_coords[0] + i, tile_coords[1] + j]
+            img, buffer = get_image(cords)
+            img = cv2.resize(img, (32, 32))  # Resize to match training data
+            img = img / 255.0  # Normalize
+            img, buffer = cv2.imencode('.jpeg', img)
+            jsonible = base64.b64encode(buffer)
+            images.append(jsonible)
 
     prediction = predict(tile_coords, model)
 
-    return jsonify({"address": address, "array": prediction.tolist()})
+    return jsonify({"address": address, "array": prediction.tolist(), "images": images})
 
 
 if __name__ == "__main__":
