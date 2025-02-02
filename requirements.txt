@@ -1,0 +1,6 @@
+requests
+flask_cors
+flask
+opencv-python
+tensorflow
+keras
