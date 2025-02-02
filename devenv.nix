@@ -2,10 +2,14 @@
 
 {
   # https://devenv.sh/basics/
-  env.GREET = "devenv";
+  # secrets.env.enable = true;
 
   # https://devenv.sh/packages/
-  packages = [ pkgs.git ];
+  packages = [
+    pkgs.libGL
+    pkgs.libglvnd
+    pkgs.glib
+  ];
 
   # https://devenv.sh/languages/
 
@@ -17,6 +21,8 @@
   };
   # https://devenv.sh/processes/
   # processes.cargo-watch.exec = "cargo-watch";
+  processes.backend.exec = "python app.py";
+  processes.frontedn.exec = "npm run dev";
 
   # https://devenv.sh/services/
   # services.postgres.enable = true;
